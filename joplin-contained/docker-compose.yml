@@ -1,0 +1,37 @@
+version: "3.3"
+services:
+
+  db:
+    image: postgres:13
+    volumes:
+      - ps_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: joplin
+      POSTGRES_USER: joplin
+      POSTGRES_PASSWORD: nginxIsRad#3
+    restart: unless-stopped
+  joplin:
+    image: joplin/server:latest
+    depends_on:
+      - db
+    ports:
+      - "22300:22300"
+    volumes:
+      - joplin_data:/joplin-data  
+    environment:
+      - APP_PORT=22300
+      - APP_BASE_URL=https://joplin.erw444.com
+      - DB_CLIENT=pg
+      - POSTGRES_PASSWORD=nginxIsRad#3
+      - POSTGRES_DATABASE=joplin
+      - POSTGRES_USER=joplin
+      - POSTGRES_PORT=5432
+      - POSTGRES_HOST=db
+    restart: unless-stopped
+
+volumes:
+  ps_data:
+  joplin_data:
+    
+
+ 
