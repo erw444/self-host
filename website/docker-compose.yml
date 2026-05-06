@@ -1,0 +1,22 @@
+services:
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    networks:
+      - app-network
+    environment:
+      - BACKEND_URL=http://backend:8000
+  backend:
+    build: ./backend
+    ports:
+      - "8000:8000"
+    networks:
+      - app-network
+
+
+networks:
+  app-network:
+    driver: bridge
