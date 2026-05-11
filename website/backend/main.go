@@ -10,56 +10,37 @@ import (
 
 var db *sql.DB
 
-func BlogHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	if r.Method != http.MethodGet || r.Method != http.MethodPost {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
 
-	if r.Method == http.MethodGet {
-		// Handle GET request
-		blogs := getBlogs()
-		for _, blog := range blogs {
-			fmt.Fprintf(w, "%s\n", blog)
-		}
-
-	} else if r.Method == http.MethodPost {
-		// Handle POST request
-		r.ParseForm()
-		blog := r.FormValue("blog")
-		saveBlog(blog)
-	}
-}
-
-func getBlogs() []string {
-	// Simulate fetching blogs
-	return []string{"Blog 1", "Blog 2", "Blog 3"}
-}
-
-func saveBlog(blog string) {
-	// Simulate saving a blog
-}
 
 func helloHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	if r.Method != http.MethodGet {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
 	fmt.Fprintln(w, "Hello World - API")
-
 }
 
 func healthHandler(w http.ResponseWriter, r *http.Request){
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	if r.Method != http.MethodGet {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
 	if err := db.Ping(); err != nil{
 		http.Error(w, "DB unreachable: " + err.Error(), http.StatusInternalServerError)
 		return
+	}
+}
+
+func corsMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		next(w,r)
+	}
+}
+
+func methodMiddleware(next http.Handler) http.Handler {
+	allowed := make(map[string]struct{}, len(methods))
+	for _, m := range methods {
+		allowed[m] = struct{}{}
+	}
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if _, ok := allowed[r.Method]; !ok {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+		next(w,r)
 	}
 }
 
@@ -75,8 +56,8 @@ func main() {
 	}
 	defer db.Close()
 
-	http.HandleFunc("/hello", helloHandler)
-	http.HandleFunc("/health", healthHandler)
-	http.HandleFunc("/blog", )
+	http.HandleFunc("/hello", corsMiddleware(methodMiddleware(http.HandlerFunc(helloHandler), http.MethodGet))))
+	http.HandleFunc("/health", corsMiddleware(methodMiddleware(http.HandlerFunc(healthHandler), http.MethodGet))))
+	http.HandleFunc("/blog", corsMiddleware(methodMiddleware(http.HandlerFunc(BlogHandler), http.MethodGet, http.MethodPost))))
 	http.ListenAndServe(":8000", nil)
 }
