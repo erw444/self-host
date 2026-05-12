@@ -2,29 +2,40 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
+	"regexp"
+	"strings"
 )
 
-func BlogHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method == http.MethodGet {
-		// Handle GET request
-		blogs := getBlogs()
-		for _, blog := range blogs {
-			fmt.Fprintf(w, "%s\n", blog)
-		}
+type BlogDTO struct {
+	Title string `json:"blogTitle"`
+	Body  string `json:"blogBody"`
+}
 
-	} else if r.Method == http.MethodPost {
+func BlogHandler(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodGet:
+		// Handle GET request
+		getBlogs(w, r)
+	case http.MethodPost:
 		// Handle POST request
 		r.ParseForm()
 		blog := r.FormValue("blog")
-		saveBlog(blog)
+		//translate blog to BlogDTO
+		var blogDTO BlogDTO
+		if err := json.Unmarshal([]byte(blog), &blogDTO); err != nil {
+			http.Error(w, "Failed to decode blog data: "+err.Error(), http.StatusBadRequest)
+			return
+		}
+		saveBlog(blogDTO, w, r)
 	}
 }
 
-func getBlogs(w http.ResponseWriter, r *http.Request){
+func getBlogs(w http.ResponseWriter, r *http.Request) {
 	rows, err := queryRows("SELECT * FROM data")
 	if err != nil {
-		http.Error(w, "Failed to query data: " + err.Error(), http.StatusInternalServerError)
+		http.Error(w, "Failed to query data: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
@@ -42,7 +53,7 @@ func queryRows(query string, args ...interface{}) ([]map[string]interface{}, err
 	if err != nil {
 		return nil, err
 	}
-	
+
 	var results []map[string]interface{}
 	for rows.Next() {
 		values := make([]interface{}, len(columns))
@@ -62,4 +73,50 @@ func queryRows(query string, args ...interface{}) ([]map[string]interface{}, err
 		results = append(results, rowMap)
 	}
 	return results, nil
+}
+
+func saveBlog(dto BlogDTO, w http.ResponseWriter, r *http.Request) error {
+	if err := json.NewDecoder(r.Body).Decode(&dto); err != nil {
+		http.Error(w, "Failed to decode blog data: "+err.Error(), http.StatusBadRequest)
+		return err
+	}
+	if dto.Title == "" || dto.Body == "" {
+		http.Error(w, "Title and Body are required", http.StatusBadRequest)
+		return fmt.Errorf("missing title or body")
+	}
+	payload := map[string]interface{}{
+		"title": dto.Title,
+		"body":  dto.Body,
+	}
+	if err := insertRow(payload); err != nil {
+		http.Error(w, "Failed to save blog: "+err.Error(), http.StatusInternalServerError)
+		return err
+	}
+	w.WriteHeader(http.StatusCreated)
+	return nil
+}
+
+var validIdentifier = regexp.MustCompile(`^[a-zA-Z_][a-zA-Z0-9_]*$`)
+
+func insertRow(data map[string]interface{}) error {
+	cols := make([]string, 0, len(data))
+	vals := make([]interface{}, 0, len(data))
+	placeholders := make([]string, 0, len(data))
+	i := 1
+	for col, val := range data {
+		if !validIdentifier.MatchString(col) {
+			return fmt.Errorf("invalid column name: %s", col)
+		}
+		cols = append(cols, col)
+		vals = append(vals, val)
+		placeholders = append(placeholders, fmt.Sprintf("$%d", i))
+		i++
+	}
+
+	query := fmt.Sprintf(
+		"INSERT INTO data (%s) VALUES (%s)",
+		strings.Join(cols, ", "),
+		strings.Join(placeholders, ", "))
+	_, err := db.Exec(query, vals...)
+	return err
 }

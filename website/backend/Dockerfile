@@ -2,9 +2,9 @@
 FROM golang:1.16-alpine as builder
 
 WORKDIR /app
-COPY main.go .
+COPY . .
 
-RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o main main.go
+RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o main .
 
 # Run Stage
 FROM scratch
