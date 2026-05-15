@@ -3,9 +3,9 @@ package main
 import (
 	"database/sql"
 	"fmt"
-	"log"
 	"net/http"
-	"os"
+
+	_ "github.com/lib/pq"
 )
 
 var db *sql.DB
@@ -43,7 +43,7 @@ func methodMiddleware(next http.HandlerFunc, methods ...string) http.HandlerFunc
 }
 
 func main() {
-	dsn := os.Getenv("DATABASE_URL")
+	/*dsn := os.Getenv("DATABASE_URL")
 	if dsn == "" {
 		log.Fatal("DATABASE_URL is not set")
 	}
@@ -52,7 +52,7 @@ func main() {
 	if err != nil {
 		log.Fatal("failed to open DB: ", err)
 	}
-	defer db.Close()
+	defer db.Close()*/
 
 	http.HandleFunc("/hello", corsMiddleware(methodMiddleware(http.HandlerFunc(helloHandler), http.MethodGet)))
 	http.HandleFunc("/health", corsMiddleware(methodMiddleware(http.HandlerFunc(healthHandler), http.MethodGet)))

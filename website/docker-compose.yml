@@ -17,7 +17,9 @@ services:
       - app-network
     depends_on:
       - db
-      
+    environment:
+      - DATABASE_URL=postgresql://website:blogsAreCool#3@db/blogdb
+
   db:
     image: postgres:16-alpine
     environment:

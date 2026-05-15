@@ -20,11 +20,8 @@ func BlogHandler(w http.ResponseWriter, r *http.Request) {
 		getBlogs(w, r)
 	case http.MethodPost:
 		// Handle POST request
-		r.ParseForm()
-		blog := r.FormValue("blog")
-		//translate blog to BlogDTO
 		var blogDTO BlogDTO
-		if err := json.Unmarshal([]byte(blog), &blogDTO); err != nil {
+		if err := json.NewDecoder(r.Body).Decode(&blogDTO); err != nil {
 			http.Error(w, "Failed to decode blog data: "+err.Error(), http.StatusBadRequest)
 			return
 		}
@@ -76,10 +73,6 @@ func queryRows(query string, args ...interface{}) ([]map[string]interface{}, err
 }
 
 func saveBlog(dto BlogDTO, w http.ResponseWriter, r *http.Request) error {
-	if err := json.NewDecoder(r.Body).Decode(&dto); err != nil {
-		http.Error(w, "Failed to decode blog data: "+err.Error(), http.StatusBadRequest)
-		return err
-	}
 	if dto.Title == "" || dto.Body == "" {
 		http.Error(w, "Title and Body are required", http.StatusBadRequest)
 		return fmt.Errorf("missing title or body")
