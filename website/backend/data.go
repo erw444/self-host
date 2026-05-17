@@ -14,12 +14,21 @@ type BlogDTO struct {
 }
 
 func BlogHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
 	switch r.Method {
 	case http.MethodGet:
 		// Handle GET request
 		getBlogs(w, r)
 	case http.MethodPost:
 		// Handle POST request
+		var blogDTO BlogDTO
+		if err := json.NewDecoder(r.Body).Decode(&blogDTO); err != nil {
+			http.Error(w, "Failed to decode blog data: "+err.Error(), http.StatusBadRequest)
+			return
+		}
+		saveBlog(blogDTO, w, r)
+	case http.MethodPut:
+		// Handle PUT request
 		var blogDTO BlogDTO
 		if err := json.NewDecoder(r.Body).Decode(&blogDTO); err != nil {
 			http.Error(w, "Failed to decode blog data: "+err.Error(), http.StatusBadRequest)
@@ -35,7 +44,10 @@ func getBlogs(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Failed to query data: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
-	w.Header().Set("Content-Type", "application/json")
+	// Ensure we always return an array, not null
+	if rows == nil {
+		rows = []map[string]interface{}{}
+	}
 	json.NewEncoder(w).Encode(rows)
 }
 

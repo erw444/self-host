@@ -5,20 +5,20 @@ services:
       - "8080:8080"
     depends_on:
       - backend
-    networks:
-      - app-network
-    environment:
-      - BACKEND_URL=http://backend:8000
   backend:
     build: ./backend
+      #context: ./backend
+      #dockerfile: Dockerfile.debug
     ports:
       - "8000:8000"
+      #- "40000:40000" # Delve debug port
+    #command: --security-opt="apparmor=unconfined" --cap-add=SYS_PTRACE 
     networks:
       - app-network
     depends_on:
       - db
     environment:
-      - DATABASE_URL=postgresql://website:blogsAreCool#3@db/blogdb
+      - DATABASE_URL=postgresql://website:blogsAreCool%233@db:5432/blogdb?sslmode=disable
 
   db:
     image: postgres:16-alpine
