@@ -1,0 +1,21 @@
+# Build Stage
+FROM golang:1.24-alpine as builder
+
+WORKDIR /app
+COPY . .
+
+# Install Delve statically to avoid runtime library dependencies
+RUN CGO_ENABLED=0 go install github.com/go-delve/delve/cmd/dlv@latest
+# Compile with optimization disabled
+RUN CGO_ENABLED=0 GOOS=linux go build -gcflags="all=-N -l" -o main .
+
+# Runtime stage
+FROM alpine:3.18
+# Install libc6-compat for Alpine compatibility with Delve
+RUN apk add --no-cache libc6-compat
+
+COPY --from=builder /app/main /main
+COPY --from=builder /go/bin/dlv .
+
+EXPOSE 8000 40000
+ENTRYPOINT ["/main"]
