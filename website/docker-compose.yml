@@ -5,6 +5,22 @@ services:
       - "8080:8080"
     depends_on:
       - backend
+    networks:
+      - app-network
+    environment:
+      - BACKEND_URL=http://backend:8000
+
+  frontend:
+    build: ./frontend-admin
+    ports:
+      - "8081:8081"
+    depends_on:
+      - backend
+    networks:
+      - app-network
+    environment:
+      - BACKEND_URL=http://backend:8000
+
   backend:
     build: ./backend
       #context: ./backend
