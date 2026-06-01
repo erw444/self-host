@@ -22,6 +22,7 @@ services:
       - APP_PORT=22300
       - APP_BASE_URL=https://notes.erw444.com
       - DB_CLIENT=pg
+      - APP_BASE_URL=https://www.erw444.com
       - POSTGRES_PASSWORD=nginxIsRad#3
       - POSTGRES_DATABASE=joplin
       - POSTGRES_USER=joplin

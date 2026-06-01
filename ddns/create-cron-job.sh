@@ -4,7 +4,7 @@
 SCHEDULE="30 2 * * *"
 
 # Define the command and its arguments (ensure full paths are used)
-COMMAND="/home/erw/codebase/self-host/ddns/update-ip-addres.sh"
+COMMAND="/home/erw/codebase/self-host/ddns/update-ip-address.sh"
 ARGUMENTS=""
 
 # Construct the full cron line
