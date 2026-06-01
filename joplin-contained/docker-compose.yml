@@ -20,7 +20,7 @@ services:
       - joplin_data:/joplin-data  
     environment:
       - APP_PORT=22300
-      - APP_BASE_URL=https://joplin.erw444.com
+      - APP_BASE_URL=https://notes.erw444.com
       - DB_CLIENT=pg
       - POSTGRES_PASSWORD=nginxIsRad#3
       - POSTGRES_DATABASE=joplin
