@@ -9,22 +9,22 @@ services:
     container_name: 'authelia'
     volumes:
       - './authelia:/config'
-    networks:
-      net: {}
+    ports:
+      - '9091:9091'
     restart: 'unless-stopped'
-    healthcheck:
+    healthCheck:
       ## In production the healthcheck section should be commented.
       disable: true
     environment:
-      TZ: 'Australia/Melbourne'
+      TZ: 'America/Chicago'
+    depends_on:
+      - redis
 
   redis:
     image: 'redis:alpine'
     container_name: 'redis'
     volumes:
       - './redis:/data'
-    networks:
-      net: {}
     restart: 'unless-stopped'
     environment:
-      TZ: 'Australia/Melbourne'
+      TZ: 'America/Chicago'
