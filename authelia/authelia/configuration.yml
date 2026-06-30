@@ -71,4 +71,4 @@ notifier:
     password: 'password'
     address: 'smtp://mail.example.com:25'
     sender: 'admin@example.com'
-...
+
