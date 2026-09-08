@@ -12,9 +12,6 @@ services:
     ports:
       - '9091:9091'
     restart: 'unless-stopped'
-    healthCheck:
-      ## In production the healthcheck section should be commented.
-      disable: true
     environment:
       TZ: 'America/Chicago'
     depends_on:
