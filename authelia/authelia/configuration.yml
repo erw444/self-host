@@ -64,11 +64,12 @@ storage:
   local:
     path: '/config/db.sqlite3'
 
-#notifier:
-#  smtp:
-#    username: 'test'
+notifier:
+  disable_startup_check: true
+  smtp:
+    username: 'test'
     # This secret can also be set using the env variables AUTHELIA_NOTIFIER_SMTP_PASSWORD_FILE
-#    password: 'password'
-#    address: 'smtp://mail.example.com:25'
-#    sender: 'admin@example.com'
+    password: 'password'
+    address: 'smtp://mail.example.com:25'
+    sender: 'admin@example.com'
 
