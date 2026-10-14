@@ -36,6 +36,7 @@ access_control:
       policy: 'bypass'
     - domain: 'blogadmin.erw444.com'
       policy: 'one_factor'
+      subject: ['group:admins']
 
 session:
   # This secret can also be set using the env variables AUTHELIA_SESSION_SECRET_FILE
@@ -43,8 +44,8 @@ session:
 
   cookies:
     - name: 'authelia_session'
-      domain: 'example.com'  # Should match whatever your root protected domain is
-      authelia_url: 'https://authelia.example.com'
+      domain: 'erw444.com'
+      authelia_url: 'https://auth.erw444.com'
       expiration: '1 hour'
       inactivity: '5 minutes'
 
@@ -72,4 +73,3 @@ notifier:
     password: 'password'
     address: 'smtp://mail.example.com:25'
     sender: 'admin@example.com'
-
