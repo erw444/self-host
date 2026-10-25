@@ -1,5 +1,5 @@
 # Build Stage
-FROM golang:1.21-alpine as builder
+FROM docker.io/golang:1.21-alpine as builder
 
 WORKDIR /app
 COPY . .

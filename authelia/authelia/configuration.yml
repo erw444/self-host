@@ -36,7 +36,7 @@ access_control:
       policy: 'bypass'
     - domain: 'blogadmin.erw444.com'
       policy: 'one_factor'
-      subject: ['group:admins']
+      subject: 'group:admins'
 
 session:
   # This secret can also be set using the env variables AUTHELIA_SESSION_SECRET_FILE

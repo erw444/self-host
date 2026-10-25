@@ -22,7 +22,7 @@ volumes:
 services:
   # --- authelia ---------------------------------------------------------
   authelia:
-    image: 'authelia/authelia'
+    image: 'docker.io/authelia/authelia'
     container_name: 'authelia'
     volumes:
       - './authelia/authelia:/config'
@@ -39,7 +39,7 @@ services:
       - redis
 
   redis:
-    image: 'redis:alpine'
+    image: 'docker.io/redis:alpine'
     container_name: 'redis'
     volumes:
       - './authelia/redis:/data'
@@ -51,7 +51,7 @@ services:
 
   # --- joplin-contained ---------------------------------------------------
   joplin-db:
-    image: postgres:13
+    image: docker.io/postgres:13
     volumes:
       - joplin_db_data:/var/lib/postgresql/data
     environment:
@@ -63,7 +63,7 @@ services:
       - joplin-net
 
   joplin:
-    image: joplin/server:latest
+    image: docker.io/joplin/server:latest
     depends_on:
       - joplin-db
     ports:
@@ -85,7 +85,7 @@ services:
 
   # --- website -------------------------------------------------------------
   website-db:
-    image: postgres:16-alpine
+    image: docker.io/postgres:16-alpine
     environment:
       - POSTGRES_DB=blogdb
       - POSTGRES_USER=website

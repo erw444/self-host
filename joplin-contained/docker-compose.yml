@@ -2,7 +2,7 @@ version: "3.3"
 services:
 
   db:
-    image: postgres:13
+    image: docker.io/postgres:13
     volumes:
       - ps_data:/var/lib/postgresql/data
     environment:
@@ -11,7 +11,7 @@ services:
       POSTGRES_PASSWORD: nginxIsRad#3
     restart: unless-stopped
   joplin:
-    image: joplin/server:latest
+    image: docker.io/joplin/server:latest
     depends_on:
       - db
     ports:
