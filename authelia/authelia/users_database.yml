@@ -11,8 +11,8 @@ users:
     disabled: false
     displayname: 'Authelia User'
     # Password is authelia
-    password: '$argon2id$v=19$m=65536,t=3,p=4$qOKNq+u5lZHOTnsJY1Sp3g$s6zT9EKncfkmIJmykzZProUigRRJ26hlTl1WC+mG2do'  # yamllint disable-line rule:line-length
-    email: 'authelia@authelia.com'
+    password: '<Add hashed password>'  # yamllint disable-line rule:line-length
+    email: '<Add email>'
     groups:
       - 'admins'
       - 'dev'
