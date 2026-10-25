@@ -37,7 +37,7 @@ services:
       - DATABASE_URL=postgresql://website:blogsAreCool%233@db:5432/blogdb?sslmode=disable
 
   db:
-    image: postgres:16-alpine
+    image: docker.io/postgres:16-alpine
     environment:
       - POSTGRES_DB=blogdb
       - POSTGRES_USER=website
