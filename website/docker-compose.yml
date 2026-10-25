@@ -10,7 +10,7 @@ services:
     environment:
       - BACKEND_URL=http://backend:8000
 
-  frontend:
+  frontend-admin:
     build: ./frontend-admin
     ports:
       - "8081:8081"

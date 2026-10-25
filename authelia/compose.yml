@@ -1,0 +1,27 @@
+---
+networks:
+  net:
+    driver: 'bridge'
+
+services:
+  authelia:
+    image: 'authelia/authelia'
+    container_name: 'authelia'
+    volumes:
+      - './authelia:/config'
+    ports:
+      - '9091:9091'
+    restart: 'unless-stopped'
+    environment:
+      TZ: 'America/Chicago'
+    depends_on:
+      - redis
+
+  redis:
+    image: 'redis:alpine'
+    container_name: 'redis-authelia'
+    volumes:
+      - './redis:/data'
+    restart: 'unless-stopped'
+    environment:
+      TZ: 'America/Chicago'

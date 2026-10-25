@@ -5,8 +5,8 @@
     var ctrl = this;
     ctrl.blogEntries = [
       {        
-        blogTitle: "Website Under Construction",
-        blogBody: "Will be posting updates here as I make progress on the website. Stay tuned!"
+        title: "Website Under Construction",
+        body: "Will be posting updates here as I make progress on the website. Stay tuned!"
       }
     ];
     //getBlogs();

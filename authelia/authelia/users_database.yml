@@ -1,0 +1,19 @@
+---
+###############################################################
+#                         Users Database                      #
+###############################################################
+
+# This file can be used if you do not have an LDAP set up.
+
+# List of users
+users:
+  authelia:
+    disabled: false
+    displayname: 'Authelia User'
+    # Password is authelia
+    password: '<Add hashed password>'  # yamllint disable-line rule:line-length
+    email: '<Add email>'
+    groups:
+      - 'admins'
+      - 'dev'
+

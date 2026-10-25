@@ -1,0 +1,136 @@
+# Global compose file that spins up every containerized child project in this repo.
+# Each project keeps its own network/volumes so it behaves the same as running
+# `docker compose up` inside its own directory. The `ddns` project is a host-level
+# cron script (no Dockerfile) and is intentionally not included here.
+#
+# Usage: docker compose up --build -d
+# Usage: docker compose up --build -d authelia redis   (to start a subset)
+
+networks:
+  authelia-net:
+    driver: bridge
+  joplin-net:
+    driver: bridge
+  website-net:
+    driver: bridge
+
+volumes:
+  joplin_db_data:
+  joplin_data:
+  website_db_data:
+
+services:
+  # --- authelia ---------------------------------------------------------
+  authelia:
+    image: 'authelia/authelia'
+    container_name: 'authelia'
+    volumes:
+      - './authelia/authelia:/config'
+    ports:
+      - '9091:9091'
+    restart: 'unless-stopped'
+    healthCheck:
+      disable: true
+    environment:
+      TZ: 'America/Chicago'
+    networks:
+      - authelia-net
+    depends_on:
+      - redis
+
+  redis:
+    image: 'redis:alpine'
+    container_name: 'redis'
+    volumes:
+      - './authelia/redis:/data'
+    restart: 'unless-stopped'
+    environment:
+      TZ: 'America/Chicago'
+    networks:
+      - authelia-net
+
+  # --- joplin-contained ---------------------------------------------------
+  joplin-db:
+    image: postgres:13
+    volumes:
+      - joplin_db_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: joplin
+      POSTGRES_USER: joplin
+      POSTGRES_PASSWORD: nginxIsRad#3
+    restart: unless-stopped
+    networks:
+      - joplin-net
+
+  joplin:
+    image: joplin/server:latest
+    depends_on:
+      - joplin-db
+    ports:
+      - "22300:22300"
+    volumes:
+      - joplin_data:/joplin-data
+    environment:
+      - APP_PORT=22300
+      - APP_BASE_URL=https://notes.erw444.com
+      - DB_CLIENT=pg
+      - POSTGRES_PASSWORD=nginxIsRad#3
+      - POSTGRES_DATABASE=joplin
+      - POSTGRES_USER=joplin
+      - POSTGRES_PORT=5432
+      - POSTGRES_HOST=joplin-db
+    restart: unless-stopped
+    networks:
+      - joplin-net
+
+  # --- website -------------------------------------------------------------
+  website-db:
+    image: postgres:16-alpine
+    environment:
+      - POSTGRES_DB=blogdb
+      - POSTGRES_USER=website
+      - POSTGRES_PASSWORD=blogsAreCool#3
+    volumes:
+      - website_db_data:/var/lib/postgresql/data
+    networks:
+      - website-net
+
+  backend:
+    build: ./website/backend
+    ports:
+      - "8000:8000"
+    networks:
+      - website-net
+    depends_on:
+      - website-db
+    environment:
+      - DATABASE_URL=postgresql://website:blogsAreCool%233@website-db:5432/blogdb?sslmode=disable
+
+  frontend:
+    build: ./website/frontend
+    ports:
+      - "8080:8080"
+    depends_on:
+      - backend
+    networks:
+      - website-net
+    environment:
+      - BACKEND_URL=http://backend:8000
+
+  frontend-admin:
+    build: ./website/frontend-admin
+    ports:
+      - "8081:8081"
+    depends_on:
+      - backend
+    networks:
+      - website-net
+    environment:
+      - BACKEND_URL=http://backend:8000
+
+  # --- countdown -------------------------------------------------------------
+  countdown:
+    build: ./countdown
+    ports:
+      - "8082:80"
+    restart: unless-stopped
