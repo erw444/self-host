@@ -29,7 +29,7 @@ services:
     ports:
       - '9091:9091'
     restart: 'unless-stopped'
-    healthCheck:
+    healthcheck:
       disable: true
     environment:
       TZ: 'America/Chicago'
@@ -133,4 +133,12 @@ services:
     build: ./countdown
     ports:
       - "8082:80"
+    restart: unless-stopped
+
+  # --- dragonsweeper -----------------------------------------------------------
+  # Host port 8000 is already used by the website backend, so this uses 8083.
+  dragonsweeper:
+    build: ./dragonsweeper_1.1.18
+    ports:
+      - "8083:80"
     restart: unless-stopped
