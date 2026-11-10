@@ -1,5 +1,5 @@
 #Build stage
-FROM node:20-alpine as build
+FROM docker.io/node:20-alpine as build
 
 WORKDIR /app
 
@@ -12,7 +12,7 @@ COPY . .
 RUN npm run build
 
 #Production stage
-FROM nginx:alpine
+FROM docker.io/nginx:alpine
 
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
