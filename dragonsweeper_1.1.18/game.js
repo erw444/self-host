@@ -320,6 +320,7 @@ class GameState
         this.actors = [];
         this.player = new PlayerState();
         this.showingMonsternomicon = false;
+        this.markMode = false;
         this.buttonFrames =[];
         /** @type {PlacedAnimation[]} */
         this.animationsFX = [];
@@ -372,6 +373,74 @@ function stripXYToFrame(x, y)
 function stripXYToFrame24(x, y)
 {
     return Math.floor(x/24) + Math.floor(y/24) * 10;
+}
+
+function getHeartOffsets()
+{
+    let heartOffsets = [];
+    let hpx = 0;
+    let hpy = 0;
+    for(let i = 0; i < MAX_HP; i++)
+    {
+        heartOffsets.push([hpx, hpy]);
+        let w = 16;
+        if(i > 0 && (i+1) % 5 == 0 && state.player.maxHP > 1) w += 6;
+        if(i == 16)
+        {
+            hpx = heartOffsets[i-1][0];
+            hpy += 15;
+        }
+        hpx += w;
+    }
+    return heartOffsets;
+}
+
+function getXPOffsetsX(xpTotal)
+{
+    let xpOffsetsX = [];
+    let xpX = 0;
+    for(let i = 0; i < xpTotal; i++)
+    {
+        xpOffsetsX.push(xpX);
+        let w = 8;
+        if(i > 0 && (i+1) % 5 == 0 && i < (xpTotal - 1) && xpTotal > 5) w += 8;
+        xpX += w;
+    }
+    return xpOffsetsX;
+}
+
+// The mark button sits in the free HUD space between the hearts/xp and the book.
+// If the stats leave no room, it moves just above the HUD instead.
+function getMarkButtonRect(worldR, HUDRect)
+{
+    let r = new Rect();
+    r.w = 36;
+    r.h = 16;
+
+    const statsX = 55 + 32 + 10; // hero.x + hero.w + gap, same origin used to draw hearts and xp
+    let statsRight = statsX;
+    let hearts = getHeartOffsets();
+    let heartCount = Math.min(hearts.length, state.player.maxHP + 1);
+    for(let i = 1; i < heartCount; i++) statsRight = Math.max(statsRight, statsX + hearts[i-1][0] + 8);
+    let xpTotal = nextLevelXP(state.player.level);
+    let xpOffsets = getXPOffsetsX(xpTotal);
+    if(xpOffsets.length > 0) statsRight = Math.max(statsRight, statsX + xpOffsets[xpOffsets.length - 1] + 12);
+
+    let bookX = lerp(13, worldR.right() - 32 - 5, 1 - state.bookLocationElapsed/BOOK_MOVEMENT_DURATION);
+    let bookOnRight = bookX > worldR.w * 0.5;
+    let rightLimit = bookOnRight ? bookX - 4 : worldR.right() - 4;
+
+    r.x = rightLimit - r.w;
+    if(r.x >= statsRight + 6)
+    {
+        r.y = HUDRect.centery() - r.h * 0.5;
+    }
+    else
+    {
+        r.x = worldR.right() - r.w - 4;
+        r.y = HUDRect.y - r.h - 2;
+    }
+    return r;
 }
 
 function nextLevelXP(level)
@@ -2252,6 +2321,23 @@ function updatePlaying(ctx, dt)
     let clickedRight = supportsRightClick() && (mouseJustPressedRight || (mouseJustPressed && shiftIsPressed));
     let clickedLeft = mouseJustPressed && !clickedRight;
 
+    // mark mode: press the mark button, then click a square to open its mark grid
+    let markButtonR = getMarkButtonRect(worldR, HUDRect);
+    let canUseMarkMode = state.status == GameStatus.Playing && !state.showingMonsternomicon;
+    let clickedMarkButton = canUseMarkMode && clickedLeft && markButtonR.contains(mousex, mousey);
+    if(canUseMarkMode && (clickedMarkButton || keysJustPressed.includes('m')))
+    {
+        state.markMode = !state.markMode;
+        state.hoverMenu.resetTo(null);
+        play(state.markMode ? "open_hover" : "close_hover");
+        if(clickedMarkButton) clickedLeft = false;
+    }
+    else
+    if(state.markMode && (!canUseMarkMode || keysJustPressed.includes('Escape')))
+    {
+        state.markMode = false;
+    }
+
     if(!mousePressed)
     {
         state.timeElapsedPushingButton = 0;
@@ -2323,7 +2409,11 @@ function updatePlaying(ctx, dt)
             {
                 hoveringActorIndex = i;
                 // if(mousePressed) pressedActorIndex = i;
-                if(clickedLeft) state.lastPushedButtonIndex = i;
+                if(clickedLeft)
+                {
+                    if(state.markMode) cycleMarkerActorIndex = i;
+                    else state.lastPushedButtonIndex = i;
+                }
                 if(clickedRight) cycleMarkerActorIndex = i;
             }
         }
@@ -2366,8 +2456,16 @@ function updatePlaying(ctx, dt)
                 menu.resetTo(null);
                 menu.actor = marked;
                 play("open_hover");
+                state.markMode = false;
             }
-        }        
+        }
+
+        // clicking anywhere that isn't an unmarked square cancels mark mode
+        if(state.markMode && clickedLeft)
+        {
+            state.markMode = false;
+            play("close_hover");
+        }
     }
 
     // turn
@@ -3382,6 +3480,13 @@ function updatePlaying(ctx, dt)
     }
     
 
+    // mark mode: highlight the square that will be marked
+    if(state.markMode && hoveringActorIndex >= 0 && !activeActors[hoveringActorIndex].revealed)
+    {
+        let r = actorRects[hoveringActorIndex];
+        drawFrame(ctx, stripButtons, 40, r.centerx(), r.centery());
+    }
+
     // monsternomicon
     if(state.showingMonsternomicon)
     {
@@ -3390,6 +3495,19 @@ function updatePlaying(ctx, dt)
 
     // hud
     drawFrame(ctx, stripHUD, 0, HUDRect.centerx(), HUDRect.centery());
+
+    // mark button
+    if(state.status == GameStatus.Playing)
+    {
+        ctx.save();
+        ctx.fillStyle = state.markMode ? "#6b5a1e" : "#2a3140";
+        ctx.fillRect(markButtonR.x, markButtonR.y, markButtonR.w, markButtonR.h);
+        ctx.strokeStyle = state.markMode ? "#f2d24b" : (markButtonR.contains(mousex, mousey) ? "#c9d1e0" : "#8a93a6");
+        ctx.lineWidth = 1;
+        ctx.strokeRect(markButtonR.x + 0.5, markButtonR.y + 0.5, markButtonR.w - 1, markButtonR.h - 1);
+        ctx.restore();
+        fontHUD.drawLine(ctx, "mark", markButtonR.centerx(), markButtonR.centery() + 1, FONT_CENTER|FONT_VCENTER);
+    }
 
     // hero
     let heroButtonEnabled = isLevelupButtonEnabled || isRestartButtonEnabled;
@@ -3406,21 +3524,7 @@ function updatePlaying(ctx, dt)
     // hp
     if(state.status == GameStatus.Playing)
     {
-        let heartOffsets = [];
-        let hpx = 0;
-        let hpy = 0;
-        for(let i = 0; i < MAX_HP; i++)
-        {
-            heartOffsets.push([hpx, hpy]);
-            let w = 16;
-            if(i > 0 && (i+1) % 5 == 0 && state.player.maxHP > 1) w += 6;
-            if(i == 16)
-            {
-                hpx = heartOffsets[i-1][0];
-                hpy += 15;
-            }
-            hpx += w;
-        }
+        let heartOffsets = getHeartOffsets();
 
         let offx = heroR.right() + 10;
         let offy = worldR.h - 29;
@@ -3442,16 +3546,8 @@ function updatePlaying(ctx, dt)
     if(state.status == GameStatus.Playing)
     {
         let xpTotal = nextLevelXP(state.player.level);
-        let xpOffsetsX = [];
-        let xpX = 0;
+        let xpOffsetsX = getXPOffsetsX(xpTotal);
         let xp = Math.min(state.player.xp, xpTotal);
-        for(let i = 0; i < xpTotal; i++)
-        {
-            xpOffsetsX.push(xpX);
-            let w = 8;
-            if(i > 0 && (i+1) % 5 == 0 && i < (xpTotal - 1) && xpTotal > 5) w += 8;
-            xpX += w;
-        }
 
         let offx = heroR.right() + 10;//(worldR.w - xpOffsetsX[xpOffsetsX.length - 1])/2;
         for(let i = 0; i < xpOffsetsX.length; i++)
