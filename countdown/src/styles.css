@@ -1,0 +1,82 @@
+body {
+  margin: 0;
+  font-family: system-ui, sans-serif;
+  background: #101820;
+  color: #f0f4f8;
+}
+
+.container {
+  max-width: 560px;
+  margin: 3rem auto;
+  padding: 0 1rem;
+}
+
+h1 {
+  text-align: center;
+}
+
+.event-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.event {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  margin-bottom: 0.75rem;
+  background: #1c2a38;
+  border-radius: 8px;
+}
+
+.event-image {
+  width: 56px;
+  height: 56px;
+  object-fit: contain;
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+
+.event-info {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
+
+.event-name {
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+.event-date {
+  opacity: 0.7;
+  font-size: 0.9rem;
+}
+
+.event.active {
+  background: #1f6b3a;
+}
+
+.event.active.theme-quake {
+  background: #e8590c;
+}
+
+.event-timer {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.event-label {
+  opacity: 0.7;
+  font-size: 0.8rem;
+}
+
+.event-countdown {
+  font-variant-numeric: tabular-nums;
+  font-family: ui-monospace, monospace;
+  font-size: 1.1rem;
+}
