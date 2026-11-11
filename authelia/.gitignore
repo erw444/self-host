@@ -1,0 +1,4 @@
+redis/*
+!redis/.gitkeep
+authelia/db.sqlite3
+authelia/notification.txt
