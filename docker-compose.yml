@@ -51,6 +51,7 @@ services:
 
   # --- joplin-contained ---------------------------------------------------
   joplin-db:
+    container_name: 'joplin-db'
     image: docker.io/postgres:13
     volumes:
       - joplin_db_data:/var/lib/postgresql/data
@@ -63,6 +64,7 @@ services:
       - joplin-net
 
   joplin:
+    container_name: 'joplin'
     image: docker.io/joplin/server:latest
     depends_on:
       - joplin-db
@@ -85,6 +87,7 @@ services:
 
   # --- website -------------------------------------------------------------
   website-db:
+    container_name: 'website-db'
     image: docker.io/postgres:16-alpine
     environment:
       - POSTGRES_DB=blogdb
@@ -96,6 +99,7 @@ services:
       - website-net
 
   backend:
+    container_name: 'website-backend'
     build: ./website/backend
     ports:
       - "8000:8000"
@@ -107,6 +111,7 @@ services:
       - DATABASE_URL=postgresql://website:blogsAreCool%233@website-db:5432/blogdb?sslmode=disable
 
   frontend:
+    container_name: 'website-frontend'
     build: ./website/frontend
     ports:
       - "8080:8080"
@@ -118,6 +123,7 @@ services:
       - BACKEND_URL=http://backend:8000
 
   frontend-admin:
+    container_name: 'website-frontend-admin'
     build: ./website/frontend-admin
     ports:
       - "8081:8081"
@@ -130,6 +136,7 @@ services:
 
   # --- countdown -------------------------------------------------------------
   countdown:
+    container_name: 'countdown'
     build: ./countdown
     ports:
       - "8082:80"
@@ -138,6 +145,7 @@ services:
   # --- dragonsweeper -----------------------------------------------------------
   # Host port 8000 is already used by the website backend, so this uses 8083.
   dragonsweeper:
+    container_name: 'dragonsweeper'
     build: ./dragonsweeper_1.1.18
     ports:
       - "8083:80"
