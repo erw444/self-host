@@ -34,6 +34,8 @@ Each group of services has its own Docker network (`authelia-net`, `joplin-net`,
 
 - **[ddns/](./ddns)**: Bash script that updates a Cloudflare DNS A record with this machine's external IP (dynamic DNS for the home connection). Set `zone`, `dnsrecord` and `cloudflare_api_token` in `ddns/config.cfg`, then run `ddns/create-cron-job.sh` to install a daily cron job (02:30). Requires `dig`, `host`, `curl` and `jq`.
 
+- **[nginx/](./nginx)**: host-level nginx reverse proxy for all the domains. `nginx/add-site.sh` adds a new site (optionally with a Let's Encrypt certificate). See [nginx/README.md](./nginx/README.md) for verifying and restarting nginx.
+
 ## Per-project notes
 
 - **dragonsweeper**: [dragonsweeper_1.1.18/docker-compose.yml](./dragonsweeper_1.1.18/docker-compose.yml) can also run the game on its own at <http://localhost:8000> with `docker compose up --build` from that folder. Port 8000 is used by the website `backend` in the top-level file, hence 8083 there.
